@@ -1,0 +1,164 @@
+/*MODIFICATIONS GLOBALES*/
+#navbar {
+  background-color : black;
+  height : 50px;
+  text-align: center;
+}
+#pageTitle {
+  color : white;
+  font-size : x-large;
+}
+.noPadding {
+  padding : 0 0 0 0;
+}
+.bold {
+  font-weight: bold;
+  font-size: smaller;
+}
+
+
+/*GESTION DES STATUTS*/
+.statusIcon {
+  height:16px;
+  width:16px;
+  border-radius:8px;
+  border : 1px solid;
+  float:left;
+  margin-right: 2%;
+  line-height: 1px;
+  background-color: gray;
+}
+.KOT {
+  background-color : red;
+}
+.OK {
+  background-color: green;
+}
+.KOF {
+  background-color: orange;
+}
+.EC {
+  background-color: cornflowerblue;
+}
+.notReferenced {
+  font-weight: bold !important;
+}
+
+/*ESPACE PRINCIPAL*/
+#filters button {
+  outline : none;
+  height: 40px;
+}
+span.textFilter {
+    margin-left: 4px;
+}
+.mainCpt {
+  font-size: x-small;
+}
+.selected {
+  background-color : #ddd;
+  border-color : dimgray;
+}
+
+#batchsMonitoring {
+  margin-top : 5%;
+}
+#datePickerDiv {
+  float : right;
+}
+#datePicker {
+    width : 200px;
+    margin-left: 10px;
+}
+#labelDatePicker {
+  font-size: small;
+  color : black;
+}
+thead {
+  background-color: #f5f5f5;
+}
+.batchsTabCaption {
+  text-align: center;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+}
+.batchsCell {
+  float:left;
+}
+
+/*PAGINATION*/
+.divPagination{
+  text-align: center;
+}
+.divPagination ul li a{
+  color : black;
+}
+
+
+
+
+/* VUE SECONDAIRE */
+#UTMonitoring {
+  margin-top: 5%;
+}
+#UTTitle {
+  text-align: center;
+  font-size: larger;
+  margin-bottom : 2%;
+}
+#tabUTs{
+  padding : 1px 1px 1px 1px;
+  display: table;
+}
+.theadUTs {
+  background-color: #f5f5f5;
+  font-weight: bold;
+  display: table-header-group;
+  vertical-align: bottom;
+}
+.th {
+  border-top: 0;
+  height: 40px;
+  padding : 8px;
+}
+.trUT {
+  padding-bottom: 8px;
+}
+.td {
+  line-height: 1.42857143;
+  padding : 8px;
+  vertical-align: top;
+  border-top: 1px solid #eee;
+}
+.tr {
+  border-top: 2px solid #ddd;
+  page-break-inside: avoid;
+}
+.tabSteps {
+    padding : 10px 30px;
+}
+.theadSteps {
+  background-color: #f5f5f5;
+  color: #444;
+  vertical-align: bottom;
+  border-top: 2px solid #eee;
+  margin-bottom: 8px;
+}
+.thSteps {
+  padding : 5px;
+}
+.trStep {
+  padding : 5px;
+  font-size : small;
+}
+.tdSteps {
+  padding : 5px;
+}
+
+/*
+.trSteps {
+  padding-left: 12%;
+  display : block;
+  font-size : smaller;
+  width : 100%;
+}*/
