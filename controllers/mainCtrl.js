@@ -1,35 +1,51 @@
 (function(){
 
-var app = angular.module('myApp', []);
+var app = angular.module('myApp', ['services', 'ngResource']);
 
-app.controller('mainCtrl', function($scope){
+app.controller('mainCtrl', ['$scope', '$resource', 'GetData', function($scope, $resource, GetData){
+$scope.date = new Date();
 
-$scope.batchs = batchs;
-$scope.UTs = UTs;
-$scope.date = new Date(2017,04,09,10,0,0,0);
-$scope.stepVisible = false;
-$scope.UTVisible = false;
-$scope.batchSelected = null;
-$scope.is10or9May = "09May";
+//--------------------------------------------
+//Initialize and load batchs data
+//--------------------------------------------
+$scope.init = function(){
+  $scope.batchs = {};
+  $scope.batchSelected = {};
+  $scope.stepVisible = false;
+  $scope.UTVisible = false;
+  $scope.batchsLoaded = false;
+  getBatchs();
+}
 
+//--------------------------------------------
+//Load batchs data
+//--------------------------------------------
+var getBatchs = function(){
+  var formatedDate = $scope.date.toISOString().substring(0,10);
+  GetData.getBatchs(formatedDate).then(function(response){
+    console.log(response);
+    $scope.batchs = response;
+    $scope.batchsLoaded = true;
+  });
+}
 
 //--------------------------------------------
 //To display the UnitTreatment screen
 //--------------------------------------------
-$scope.batchClicked = function(batchId){
+$scope.batchClicked = function(batch){
   if($scope.stepVisible == true)
     {console.log('true');
     $scope.stepVisible = !$scope.stepVisible;}
 
   if($scope.UTVisible == false){
     $scope.UTVisible = true;
-    $scope.batchSelected = batchId;
-    selectDetailsToShow(batchId);
+    $scope.batchSelected = batch;
+  //  selectDetailsToShow(batchId);
     // TODO : REQUETE AVEC BATCHID
   }else {
-    if($scope.batchSelected != batchId){
-      $scope.batchSelected = batchId;
-      selectDetailsToShow(batchId);
+    if(($scope.batchSelected == null)||($scope.batchSelected.unitId != batch.unitId)){
+      $scope.batchSelected = batch;
+    //  selectDetailsToShow(batchId);
       // TODO : REQUETE AVEC BATCHID
     }else {
       $scope.UTVisible = false;
@@ -37,41 +53,19 @@ $scope.batchClicked = function(batchId){
   }
 }
 
-var selectDetailsToShow = function(batchId){
-  switch (batchId) {
-    case "CRMSFOL":
-      if($scope.is10or9May == "09May")
-        $scope.UTs = UTs;
-      else {
-        $scope.UTs = UTsBis;
-      }
-      break;
-    case "CRMCNIL":
-      $scope.UTs = UTsBis3;
-      break;
-    case "CRMCDFNDRE":
-      $scope.UTs = UTsBis2;
-      break;
+//--------------------------------------------
+//Get steps for the Unit clicked
+//--------------------------------------------
+$scope.getSteps = function(unitId){
+  console.log("unitId : ", unitId);
+if($scope.batchs[$scope.batchSelected.id].treatmentUnits[unitId].steps[0] == null){
+    GetData.getSteps(unitId).then(function(response){
+      $scope.batchs[$scope.batchSelected.id].treatmentUnits[unitId].steps = response;
+      $scope.batchs[$scope.batchSelected.id].treatmentUnits[unitId].steps.loaded = true;
+      $scope.batchSelected = $scope.batchs[$scope.batchSelected.id];
+    });
   }
 }
-
-//--------------------------------------------
-//On date Change, new Data
-//--------------------------------------------
-$scope.changeDate = function(){
-  $scope.UTVisible = false;
-  //TODO : new Request with the new Date
-  if(Object.keys($scope.batchs).length > 2) {
-    $scope.batchs=batchsBis;
-    $scope.UTs = UTsBis;
-    $scope.is10or9May = "10May";
-  }else {
-    $scope.batchs=batchs;
-    $scope.UTs = UTs;
-    $scope.is10or9May = "09May";
-  }
-}
-
 
 //--------------------------------------------
 //Filter functionning
@@ -96,7 +90,7 @@ $scope.addFilter = function(fitler){
 }
 
 
-  });
+  }]);
 
 
 // ---- DIRECTIVES ---- //

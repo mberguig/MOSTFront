@@ -17,13 +17,13 @@
     <script src="resources/mocks.js" type="text/javascript"></script>
   </head>
 
-  <body  ng-controller="mainCtrl">
+  <body ng-controller="mainCtrl">
 
     <div id="navbar">
       <span id="pageTitle">Supervision des Traitements</span>
     </div>
 
-    <div id="batchsMonitoring" class="container">
+    <div id="batchsMonitoring" class="container" ng-init="init()">
 
       <div id="filters" class="col-lg-12 col-md-12 col-sm-12">
         <button id="btnAll" class="btn btn-default btn-sm selected" toggle-class="selected" data-ng-click="addFilter('ALL')">Tous</button>
@@ -32,7 +32,7 @@
         <button id="btnKOT" class="btn btn-default btn-sm" toggle-class="selected" data-ng-click="addFilter('KOT')"><div class="statusIcon KOT"></div><span class="textFilter">KOT</span><br><span class="mainCpt">1</span></button>
         <button id="btnKOT" class="btn btn-default btn-sm" toggle-class="selected" data-ng-click="addFilter('EC')"><div class="statusIcon EC"></div><span class="textFilter">EN COURS</span><br><span class="mainCpt">2</span></button>
         <button id="btnCTI" class="btn btn-default btn-sm selected" toggle-class="selected" data-ng-click="addFilter('CTI')">∅ CTI</button>
-        <div id="datePickerDiv"><label id="labelDatePicker" for="datePicker">Visionner le :</label><input id="datePicker" type="date" data-ng-change="changeDate()" data-ng-model="date"/></div>
+        <div id="datePickerDiv"><label id="labelDatePicker" for="datePicker">Visionner le :</label><input id="datePicker" type="date" data-ng-change="init()" data-ng-model="date"/></div>
       </div>
 
       <table id="tab" class="table">
@@ -48,13 +48,14 @@
             </th>
           </tr>
         </thead>
-        <tr data-ng-repeat="batch in batchs" data-ng-click="batchClicked(batch.name)">
-          <td><div data-ng-class="batch.status" class="statusIcon"></div><span  data-ng-class="{'notReferenced': batch.notReferenced}" >{{batch.name}}</span></td>
-          <td>{{batch.start}}</td>
-          <td>{{batch.end}}</td>
-          <td>{{batch.duration}}</td>
+        <tr data-ng-repeat="batch in batchs | orderBy : 'startTime'" data-ng-click="batchClicked(batch)">
+          <td><div data-ng-class="batch.status" class="statusIcon"></div><span data-ng-class="{'notReferenced': !batch.referenced}" >{{batch.name}}</span></td>
+          <td>{{batch.startTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+          <td>{{batch.endTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+          <td>{{batch.durationTxt}}</td>
         </tr>
       </table>
+      <div id="loadBatchs" class="loader" data-ng-hide="batchsLoaded">Loading...</div>
 
       <div class="divPagination">
         <ul class="pagination pagination-sm">
@@ -68,7 +69,7 @@
       </div>
 
       <div id="UTMonitoring" class="container" data-ng-show="UTVisible">
-        <div id="UTTitle">Détails du Batch {{batchSelected}}</div>
+        <div id="UTTitle">Détails du Batch {{batchSelected.name}}</div>
 
 
 <div id="tabUTs">
@@ -83,29 +84,30 @@
     </div>
   </div>
 
-  <div data-ng-repeat="UT in UTs" class="col-lg-12 col-sm-12 col-md-12 trUT noPadding">
+  <div data-ng-repeat="UT in batchSelected.treatmentUnits" class="col-lg-12 col-sm-12 col-md-12 trUT noPadding">
     <div class="col-lg-12 col-sm-12 col-md-12 tr noPadding">
-      <div class="col-lg-5 col-md-5 col-sm-5 td"><div data-ng-class="UT.status" class="statusIcon"></div><span class="batchsCell">{{UT.name}}</span></div>
+      <div class="col-lg-5 col-md-5 col-sm-5 td"><div data-ng-class="UT.status" class="statusIcon"></div><span class="batchsCell" data-ng-class="{'notReferenced': !UT.referenced}">{{UT.unitName}}</span></div>
       <div class="col-lg-7 col-md-7 col-sm-7 noPadding">
         <div class="col-lg-2 col-md-2 col-sm-2 td">{{UT.type}}</div>
-        <div class="col-lg-4 col-md-4 col-sm-4 td">OK: {{UT.nbOK}}<br>KOF: {{UT.nbKOF}}<br>KOT: {{UT.nbKOT}}</div>
-        <div class="col-lg-3 col-md-3 col-sm-3 td">{{UT.start}}<br>{{UT.end}}</div>
-        <div class="col-lg-2 col-md-2 col-sm-2 td">{{UT.duration}}</div>
-        <div class="col-lg-1 col-md-1 col-sm-1 td"><i class="glyphicon glyphicon-plus" data-ng-click="stepVisible = !stepVisible" data-ng-show="UT.type == 'JAVA'"></i></div>
+        <div class="col-lg-4 col-md-4 col-sm-4 td">OK: {{UT.treatSuccessCount}}<br>KOF: {{UT.treatFailedCount}}<br>KOT: {{UT.treatErrCount}}</div>
+        <div class="col-lg-3 col-md-3 col-sm-3 td">{{UT.startTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}<br>{{UT.endTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}</div>
+        <div class="col-lg-2 col-md-2 col-sm-2 td">{{UT.durationTxt}}</div>
+        <div class="col-lg-1 col-md-1 col-sm-1 td"><i class="glyphicon glyphicon-plus" data-ng-click="stepVisible=!stepVisible;getSteps(UT.unitId)"></i></div><!-- data-ng-show="UT.type == 'JAVA'"></i></div>-->
       </div>
     </div>
-    <div class="tabSteps">
-      <div class="col-lg-12 col-sm-12 col-md-12 theadSteps" data-ng-show="stepVisible">
+    <div class="tabSteps"  data-ng-show="stepVisible">
+      <div class="col-lg-12 col-sm-12 col-md-12 theadSteps">
         <div class="col-lg-5 col-md-5 col-sm-5 thSteps">Etape</div>
         <div class="col-lg-3 col-md-3 col-sm-3 thSteps">Nb d'enregistrements</div>
         <div class="col-lg-2 col-md-2 col-sm-2 thSteps">Durée totale</div>
         <div class="col-lg-2 col-md-2 col-sm-2 thSteps">Durée moyenne</div>
       </div>
-      <div id="details" data-ng-repeat="step in UT.steps" class="col-lg-12 col-sm-12 col-md-12 trStep" data-ng-show="stepVisible">
-        <div class="col-lg-5 col-md-5 col-sm-5 tdSteps"><div data-ng-class="step.status" class="statusIcon"></div><span class="batchsCell">{{step.name}}</span></div>
-        <div class="col-lg-3 col-md-3 col-sm-3 tdSteps"><span class="bold">OK:</span> {{step.nbOK}} <span class="bold">KOF:</span> {{step.nbKOF}} <span class="bold">KOT:</span> {{step.nbKOT}}</div>
-        <div class="col-lg-2 col-md-2 col-sm-2 tdSteps">{{step.totalDuration}}</div>
-        <div class="col-lg-2 col-md-2 col-sm-2 tdSteps">{{step.averageDuration}}</div>
+      <div id="loadSteps" class="loader" data-ng-hide="UT.steps.loaded">Loading...</div>
+      <div id="details" data-ng-repeat="step in UT.steps" class="col-lg-12 col-sm-12 col-md-12 trStep" data-ng-if="step.stepName != null">
+        <div class="col-lg-5 col-md-5 col-sm-5 tdSteps"><div data-ng-class="step.status" class="statusIcon"></div><span class="batchsCell">{{step.stepName}}</span></div>
+        <div class="col-lg-3 col-md-3 col-sm-3 tdSteps"><span class="bold">OK:</span> {{step.treatSuccessCount}} <span class="bold">KOF:</span> {{step.treatFailedCount}} <span class="bold">KOT:</span> {{step.treatErrCount}}</div>
+        <div class="col-lg-2 col-md-2 col-sm-2 tdSteps">{{step.totalDurationTxt}}</div>
+        <div class="col-lg-2 col-md-2 col-sm-2 tdSteps">{{step.averageDurationTxt}}</div>
       </div>
     </div>
   </div>
@@ -119,6 +121,9 @@
 
 <!-- Librairies javascript -->
   <script src="vendor/js/angular.min.js" type="text/javascript"></script>
+  <script src="vendor/js/angular-resource.min.js" type="text/javascript"></script>
+  <script src="vendor/js/angular-route.min.js" type="text/javascript"></script>
+  <script src="services/service.js" type="text/javascript"></script>
   <script src="vendor/js/jquery-1.12.2.min.js" type="text/javascript"></script>
   <script src="vendor/js/materialize.min.js"></script>
   <script src="resources/mocks.js" type="text/javascript"></script>
