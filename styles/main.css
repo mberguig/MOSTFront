@@ -1,12 +1,15 @@
 /*MODIFICATIONS GLOBALES*/
 #navbar {
-  background-color : black;
-  height : 50px;
-  text-align: center;
+  background-color: rgba(51, 159, 183, 0.5);
+    height: 79px;
+    text-align: center;
+    padding-top: 17px;
 }
 #pageTitle {
-  color : white;
-  font-size : x-large;
+color: #f5f5f5;
+font-size: 29px;
+/* vertical-align: middle; */
+margin-top: 54px;
 }
 .noPadding {
   padding : 0 0 0 0;
@@ -58,6 +61,7 @@ span.textFilter {
 .selected {
   background-color : #ddd;
   border-color : dimgray;
+
 }
 
 #batchsMonitoring {
@@ -96,8 +100,21 @@ thead {
 .pagination{
   padding-left: 9%;
 }
-
-
+.btnPage {
+  border-radius: 26px;
+  width: 50px;
+  background-color: whitesmoke;
+  color: darkgray;
+  outline : transparent !important;
+}
+.btnPage:hover{
+  background-color: #ddd;
+  outline : transparent !important;
+}
+.btnPage:focus{
+  background-color: #ddd;
+  outline : transparent !important;
+}
 
 /* VUE SECONDAIRE */
 #UTMonitoring {
@@ -167,64 +184,33 @@ thead {
 }*/
 
 
-
-
-
-/* SPINNER */
-.loader,
-.loader:before,
-.loader:after {
-  border-radius: 50%;
-  width: 2.5em;
-  height: 2.5em;
-  -webkit-animation-fill-mode: both;
-  animation-fill-mode: both;
-  -webkit-animation: load7 1.8s infinite ease-in-out;
-  animation: load7 1.8s infinite ease-in-out;
-}
+/* LOADER */
 .loader {
-  color: #31708f;
-  font-size: 10px;
-  margin: 80px auto;
-  position: relative;
-  text-indent: -9999em;
-  -webkit-transform: translateZ(0);
-  -ms-transform: translateZ(0);
-  transform: translateZ(0);
-  -webkit-animation-delay: -0.16s;
-  animation-delay: -0.16s;
+  margin-right: auto;
+  margin-left: auto;
+  border: 10px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 10px solid #26a69a;
+  width: 100px;
+  height: 100px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
 }
-.loader:before,
-.loader:after {
-  content: '';
-  position: absolute;
-  top: 0;
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
 }
-.loader:before {
-  left: -3.5em;
-  -webkit-animation-delay: -0.32s;
-  animation-delay: -0.32s;
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-.loader:after {
-  left: 3.5em;
+
+#loadSteps{
+  margin-top : 130px;
 }
-@-webkit-keyframes load7 {
-  0%,
-  80%,
-  100% {
-    box-shadow: 0 2.5em 0 -1.3em;
-  }
-  40% {
-    box-shadow: 0 2.5em 0 0;
-  }
-}
-@keyframes load7 {
-  0%,
-  80%,
-  100% {
-    box-shadow: 0 2.5em 0 -1.3em;
-  }
-  40% {
-    box-shadow: 0 2.5em 0 0;
-  }
+
+#loadUTS{
+  margin-top : 80px;
 }

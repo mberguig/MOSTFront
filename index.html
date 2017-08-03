@@ -26,12 +26,12 @@
     <div id="batchsMonitoring" class="container" ng-init="init()">
 
       <div id="filters" class="col-lg-12 col-md-12 col-sm-12">
-        <button id="btnAll" class="btn btn-default btn-sm selected" toggle-class="selected" data-ng-click="addFilter('ALL')">Tous</button>
-        <button id="btnOK" class="btn btn-default btn-sm" toggle-class="selected" data-ng-click="addFilter('OK')"><div class="statusIcon OK"></div><span class="textFilter">OK</span><br><span class="mainCpt">20</span></button>
-        <button id="btnKOF" class="btn btn-default btn-sm" toggle-class="selected" data-ng-click="addFilter('KOF')"><div class="statusIcon KOF"></div><span class="textFilter">KOF</span><br><span class="mainCpt">5</span></button>
-        <button id="btnKOT" class="btn btn-default btn-sm" toggle-class="selected" data-ng-click="addFilter('KOT')"><div class="statusIcon KOT"></div><span class="textFilter">KOT</span><br><span class="mainCpt">1</span></button>
-        <button id="btnKOT" class="btn btn-default btn-sm" toggle-class="selected" data-ng-click="addFilter('EC')"><div class="statusIcon EC"></div><span class="textFilter">EN COURS</span><br><span class="mainCpt">2</span></button>
-        <button id="btnCTI" class="btn btn-default btn-sm selected" toggle-class="selected" data-ng-click="addFilter('CTI')">∅ CTI</button>
+        <button id="btnAll" class="btn btn-default btn-sm selected btnStatus" toggle-class="selected" data-ng-click="init()">Tous<br><span class="mainCpt">{{nbTotalBatchs.ALL}}</span></button>
+        <button id="btnOK" class="btn btn-default btn-sm btnStatus" data-ng-click="getBatchByStatus('OK', 0)"><div class="statusIcon OK"></div><span class="textFilter">OK</span><br><span class="mainCpt">{{nbTotalBatchs.OK}}</span></button>
+        <button id="btnKOF" class="btn btn-default btn-sm btnStatus" data-ng-click="getBatchByStatus('KOF', 0)"><div class="statusIcon KOF"></div><span class="textFilter">KOF</span><br><span class="mainCpt">{{nbTotalBatchs.KOF}}</span></button>
+        <button id="btnKOT" class="btn btn-default btn-sm btnStatus" data-ng-click="getBatchByStatus('KOT', 0)"><div class="statusIcon KOT"></div><span class="textFilter">KOT</span><br><span class="mainCpt">{{nbTotalBatchs.KOT}}</span></button>
+        <button id="btnKOT" class="btn btn-default btn-sm btnStatus" data-ng-click="getBatchByStatus('EC', 0)"><div class="statusIcon EC"></div><span class="textFilter">EN COURS</span><br><span class="mainCpt">{{nbTotalBatchs.EC}}</span></button>
+        <button id="btnCTI" class="btn btn-default btn-sm selected" toggle-class="selected" data-ng-click="isCTI=!isCTI;CTIClicked()">∅ CTI</button>
         <div id="datePickerDiv"><label id="labelDatePicker" for="datePicker">Visionner le :</label><input id="datePicker" type="date" data-ng-change="init()" data-ng-model="date"/></div>
       </div>
 
@@ -49,22 +49,25 @@
           </tr>
         </thead>
         <tr data-ng-repeat="batch in batchs | orderBy : 'startTime'" data-ng-click="batchClicked(batch)">
-          <td><div data-ng-class="batch.status" class="statusIcon"></div><span data-ng-class="{'notReferenced': !batch.referenced}" >{{batch.name}}</span></td>
+          <td><div data-ng-class="batch.status" class="statusIcon"></div><span data-ng-class="{'notReferenced': !batch.referenced}" >{{batch.treatmentName}}</span></td>
           <td>{{batch.startTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}</td>
-          <td>{{batch.endTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+          <td><span ng-hide="batch.endTime == null">{{batch.endTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}</span></td>
           <td>{{batch.durationTxt}}</td>
         </tr>
       </table>
-      <div id="loadBatchs" class="loader" data-ng-hide="batchsLoaded">Loading...</div>
+      <div id="loadBatchs" class="loader" data-ng-hide="batchsLoaded"></div>
 
       <div class="divPagination">
-        <ul class="pagination pagination-sm">
+      <!--  <ul class="pagination pagination-sm">
           <li><a href="#">1</a></li>
           <li><a href="#">2</a></li>
           <li><a href="#">3</a></li>
           <li><a href="#">4</a></li>
           <li><a href="#">5</a></li>
-        </ul>
+        </ul>-->
+        <button class="col-lg-1 col-sm-1 col-md-1 col-lg-offset-1 col-md-offet-1 col-sm-offset-1 btn btnPage" data-ng-click="getLessBatchs()" data-ng-disable="page==0"><</button>
+        <button class="col-lg-1 col-sm-1 col-md-1 col-lg-offset-9 col-md-offet-9 col-sm-offset-9 btn btnPage" data-ng-click="getMoreBatchs()" data-ng-disable="page+1 == nbTotalPages">></button>
+        <span class="col-lg-12 col-md-12 col-sm-12">Page {{page+1}} sur {{nbTotalPages}}</span>
       </div>
       </div>
 
@@ -83,14 +86,14 @@
       <div class="col-lg-1 col-md-1 col-sm-1 th">+</div>
     </div>
   </div>
-
-  <div data-ng-repeat="UT in batchSelected.treatmentUnits" class="col-lg-12 col-sm-12 col-md-12 trUT noPadding">
+  <div id="loadUTS" class="loader" data-ng-hide="batchSelected.treatmentUnits.loaded"></div>
+  <div data-ng-repeat="UT in batchSelected.treatmentUnits" class="col-lg-12 col-sm-12 col-md-12 trUT noPadding" data-ng-if="UT.unitName != null">
     <div class="col-lg-12 col-sm-12 col-md-12 tr noPadding">
       <div class="col-lg-5 col-md-5 col-sm-5 td"><div data-ng-class="UT.status" class="statusIcon"></div><span class="batchsCell" data-ng-class="{'notReferenced': !UT.referenced}">{{UT.unitName}}</span></div>
       <div class="col-lg-7 col-md-7 col-sm-7 noPadding">
         <div class="col-lg-2 col-md-2 col-sm-2 td">{{UT.type}}</div>
         <div class="col-lg-4 col-md-4 col-sm-4 td">OK: {{UT.treatSuccessCount}}<br>KOF: {{UT.treatFailedCount}}<br>KOT: {{UT.treatErrCount}}</div>
-        <div class="col-lg-3 col-md-3 col-sm-3 td">{{UT.startTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}<br>{{UT.endTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}</div>
+        <div class="col-lg-3 col-md-3 col-sm-3 td">{{UT.startTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}<br><span ng-hide="UT.endTime == null">{{UT.endTime - 7200000 | date:'dd-MM-yyyy HH:mm:ss'}}</span></div>
         <div class="col-lg-2 col-md-2 col-sm-2 td">{{UT.durationTxt}}</div>
         <div class="col-lg-1 col-md-1 col-sm-1 td"><i class="glyphicon glyphicon-plus" data-ng-click="stepVisible=!stepVisible;getSteps(UT.unitId)"></i></div><!-- data-ng-show="UT.type == 'JAVA'"></i></div>-->
       </div>
@@ -102,7 +105,8 @@
         <div class="col-lg-2 col-md-2 col-sm-2 thSteps">Durée totale</div>
         <div class="col-lg-2 col-md-2 col-sm-2 thSteps">Durée moyenne</div>
       </div>
-      <div id="loadSteps" class="loader" data-ng-hide="UT.steps.loaded">Loading...</div>
+      <div id="loadSteps" class="loader" data-ng-hide="UT.steps.loaded"></div>
+      <!--<div id="loadSteps" class="loader" data-ng-hide="UT.steps.loaded">Loading...</div>-->
       <div id="details" data-ng-repeat="step in UT.steps" class="col-lg-12 col-sm-12 col-md-12 trStep" data-ng-if="step.stepName != null">
         <div class="col-lg-5 col-md-5 col-sm-5 tdSteps"><div data-ng-class="step.status" class="statusIcon"></div><span class="batchsCell">{{step.stepName}}</span></div>
         <div class="col-lg-3 col-md-3 col-sm-3 tdSteps"><span class="bold">OK:</span> {{step.treatSuccessCount}} <span class="bold">KOF:</span> {{step.treatFailedCount}} <span class="bold">KOT:</span> {{step.treatErrCount}}</div>
