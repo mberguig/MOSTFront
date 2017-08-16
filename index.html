@@ -56,6 +56,7 @@
         </tr>
       </table>
       <div id="loadBatchs" class="loader" data-ng-hide="batchsLoaded"></div>
+      <div id="errorBatchs" class="col-lg-10 col-md-10 col-sm-10 col-lg-offset-1 col-md-offset-1 col-sm-offset-1" data-ng-show="error.isError">{{error.message}} (statut : {{error.status}})</div>
 
       <div class="divPagination">
       <!--  <ul class="pagination pagination-sm">
@@ -72,7 +73,7 @@
       </div>
 
       <div id="UTMonitoring" class="container" data-ng-show="UTVisible">
-        <div id="UTTitle">Détails du Batch {{batchSelected.name}}</div>
+        <div id="UTTitle">Détails du Batch {{batchSelected.treatmentName}}</div>
 
 
 <div id="tabUTs">

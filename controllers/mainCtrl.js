@@ -2,7 +2,7 @@
 
 var app = angular.module('myApp', ['services', 'ngResource']);
 
-app.controller('mainCtrl', ['$scope', '$resource', 'GetData', function($scope, $resource, GetData){
+app.controller('mainCtrl', ['$scope', '$resource', 'GetData', 'GetNbResults', function($scope, $resource, GetData, GetNbResults){
 $scope.date = new Date();
 $scope.isCTI = false;
 //--------------------------------------------
@@ -18,6 +18,7 @@ $scope.init = function(){
   $scope.page = 0;
   $scope.nbTotalPages = 1;
   $scope.status = "ALL";
+  $scope.error = {};
   $scope.nbTotalBatchs = {
     ALL: "...",
     OK: "...",
@@ -26,55 +27,76 @@ $scope.init = function(){
     EC:"..."
   };
   var formatedDate = $scope.date.toISOString().substring(0,10);
-  GetData.getNbResultsEC(formatedDate, $scope.isCTI).then(function(response){
-    $scope.nbTotalBatchs.EC = response.result;
-    console.log("EC : ", response);
-  });
-  GetData.getNbResultsOK("OK", formatedDate, $scope.isCTI).then(function(response){
-    $scope.nbTotalBatchs.OK = response.result;
-    console.log("OK : ", response);
-  });
-  GetData.getNbResultsKOF("KOF", formatedDate, $scope.isCTI).then(function(response){
-    $scope.nbTotalBatchs.KOF = response.result;
-    console.log("KOF : ", response);
-  });
-  GetData.getNbResultsKOT("KOT", formatedDate, $scope.isCTI).then(function(response){
-    $scope.nbTotalBatchs.KOT = response.result;
-    console.log("KOT : ", response);
-  });
+  getNbBatchs(formatedDate);
   $(".btnStatus").removeClass("selected");
   $("#btnAll").addClass("selected");
   getBatchs(formatedDate);
 }
 
 //--------------------------------------------
+//Load nb of total batchs
+//--------------------------------------------
+var getNbBatchs = function(formatedDate) {
+  GetNbResults.getNbResultsEC(formatedDate, $scope.isCTI).then(function(response){
+    $scope.nbTotalBatchs.EC = response.result;
+  }, function error(error){
+      $scope.nbTotalBatchs.EC = "NA";
+      console.error("get nb total batchs EC failed, error : " + errorHandler(error.status).message + " with status " + error.status);
+  });
+  GetNbResults.getNbResultsOK("OK", formatedDate, $scope.isCTI).then(function(response){
+    $scope.nbTotalBatchs.OK = response.result;
+  }, function error(error){
+      $scope.nbTotalBatchs.OK = "NA";
+      console.error("get nb total batchs OK failed, error : " + errorHandler(error.status).message + " with status " + error.status);
+  });
+  GetNbResults.getNbResultsKOF("KOF", formatedDate, $scope.isCTI).then(function(response){
+    $scope.nbTotalBatchs.KOF = response.result;
+  }, function error(error){
+      $scope.nbTotalBatchs.KOF = "NA";
+      console.error("get nb total batchs KOF failed, error : " + errorHandler(error.status).message + " with status " + error.status);
+  });
+  GetNbResults.getNbResultsKOT("KOT", formatedDate, $scope.isCTI).then(function(response){
+    $scope.nbTotalBatchs.KOT = response.result;
+  }, function error(error){
+      $scope.nbTotalBatchs.KOT = "NA";
+      console.error("get nb total batchs KOT failed, error : " + errorHandler(error.status).message + " with status " + error.status);
+  });
+}
+
+
+//--------------------------------------------
 //Load batchs data
 //--------------------------------------------
 var getBatchs = function(formatedDate){
-  GetData.getBatchs(formatedDate, $scope.page, $scope.isCTI).then(function(response){
-    console.log(response);
-    $scope.batchs = response;
-      console.log($scope.batchs);
-    $scope.batchsLoaded = true;
-  });
+  GetData.getBatchs(formatedDate, $scope.page, $scope.isCTI).then(
+    function success(response){
+      $scope.batchs = response;
+      $scope.batchsLoaded = true;
+    }, function error(error){
+      $scope.error = errorHandler(error.status);
+      $scope.batchsLoaded = true;
+    });
     var formatedDate = $scope.date.toISOString().substring(0,10);
-  GetData.getNbResults(formatedDate, $scope.isCTI).then(function(response){
-    console.log(response);
+  GetNbResults.getNbResults(formatedDate, $scope.isCTI).then(function(response){
     $scope.nbTotalBatchs.ALL = response.result;
     $scope.nbTotalPages = Math.ceil($scope.nbTotalBatchs.ALL /10);
-    console.log("  $scope.nbTotalPages : ",   $scope.nbTotalPages);
+  }, function error(error){
+    $scope.nbTotalBatchs.ALL = "NA";
+    $scope.nbTotalPages = "1";
+      console.error("get nb total batchs failed, error : " + errorHandler(error.status).message + " with status " + error.status);
   });
 
 }
 
-//----------PAGINATION ----------- //
-$scope.getMoreBatchs = function(){
-  console.log("isCTI : ", $scope.isCTI);
-  if($scope.batchsHistorical[$scope.page] == undefined){
+//--------------------------------------------
+//Pagning functions
+//--------------------------------------------
+$scope.getMoreBatchs = function(){ //to the next page
+  if($scope.batchsHistorical[$scope.page] == undefined){ //if the actual page isn't in memory, save it
       $scope.batchsHistorical[$scope.page]=$scope.batchs;
   }
   $scope.page +=1;
-  if($scope.batchsHistorical[$scope.page] == undefined) { //si l'historique n'existe pas pour la page demandée
+  if($scope.batchsHistorical[$scope.page] == undefined) { //if the historical of the page asked isn't in memory, get the page
     var formatedDate = $scope.date.toISOString().substring(0,10);
     switch($scope.status){
       case "ALL":
@@ -108,16 +130,16 @@ $scope.getMoreBatchs = function(){
     }
 
   }else {
-    $scope.batchs = $scope.batchsHistorical[$scope.page];
+    $scope.batchs = $scope.batchsHistorical[$scope.page]; // if the historical is in memory, just get it from the memory
   }
 }
-
+//get the previous page
 $scope.getLessBatchs = function(){
-  if($scope.batchsHistorical[$scope.page] == undefined){
+  if($scope.batchsHistorical[$scope.page] == undefined){ //if the actual page isn't in memory, save it
     $scope.batchsHistorical[$scope.page]=$scope.batchs;
   }
   $scope.page -=1;
-  $scope.batchs = $scope.batchsHistorical[$scope.page];
+  $scope.batchs = $scope.batchsHistorical[$scope.page]; //get the page in memory
 }
 
 //--------------------------------------------
@@ -125,20 +147,15 @@ $scope.getLessBatchs = function(){
 //--------------------------------------------
 $scope.batchClicked = function(batch){
   if($scope.stepVisible == true)
-    {console.log('true');
-    $scope.stepVisible = !$scope.stepVisible;}
+    $scope.stepVisible = !$scope.stepVisible;
 
   if($scope.UTVisible == false){
     $scope.UTVisible = true;
     $scope.batchSelected = batch;
-  //  selectDetailsToShow(batchId);
-    // TODO : REQUETE AVEC BATCHID
     $scope.getUnits(batch.treatmentId);
   }else {
     if(($scope.batchSelected == null)||($scope.batchSelected.unitId != batch.unitId)){
       $scope.batchSelected = batch;
-    //  selectDetailsToShow(batchId);
-      // TODO : REQUETE AVEC BATCHID
       $scope.getUnits(batch.treatmentId);
     }else {
       $scope.UTVisible = false;
@@ -146,6 +163,9 @@ $scope.batchClicked = function(batch){
   }
 }
 
+//--------------------------------------------
+//To update the results in function of the status of CTI
+//--------------------------------------------
 $scope.CTIClicked = function(){
   $scope.CTI = !$scope.CTI;
   if($scope.status =="ALL") {
@@ -188,6 +208,7 @@ if($scope.batchs[$scope.batchSelected.treatmentId].treatmentUnits[0] == null){
     });
   }
 }
+
 
 
 
@@ -238,6 +259,19 @@ $scope.getBatchByStatus = function(status, page){
 
       }
       $scope.status = status;
+  }
+}
+
+
+//--------------------------------------------
+//To personalize some messages regarding to the error status
+//--------------------------------------------
+var errorHandler = function(status, message){
+  console.log("status : ", status);
+  if (status == -1){
+    return {status : -1, message : "Réponse vide : le serveur ne semble pas être démarré.", isError: "true"};
+  } else {
+    return {status : status, message : message, isError: "true"};
   }
 }
 
